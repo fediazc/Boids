@@ -6,12 +6,17 @@ public class BoidController : Node2D
 {
     private PackedScene _boidResource = GD.Load<PackedScene>("res://src/Boid.tscn");
     
-    public const int NumberOfBoids = 200;
-    public const int GridStepSize = 25;
-    public const float Speed = 600.0f;
-    public const double ViewAngle = Mathf.Pi / 3;
-    public const double ViewDistance = 100.0;
-    public const float TurnSpeed = 0.02f;
+    [Export] public int NumberOfBoids { set; get; } = 100;
+    [Export] public int GridStepSize { set; get; } = 100;
+    [Export] public float Speed { set; get; } = 100.0f;
+    [Export] public float ViewAngleDegrees { set; get; } = 90.0f;
+    [Export] public double ViewDistance { set; get; } = 150;
+    [Export] public float TurnSpeed { set; get; } = 0.02f;
+
+    [Export] public float alignCoeff { set; get; } = 1.0f;
+    [Export] public float separationCoeff { set; get; } = 1.0f;
+    [Export] public float cohesionCoeff { set; get; } = 1.0f;
+    [Export] public float followCoeff { set; get; } = 0.0f;
 
     private List<Boid> _boidList = new List<Boid>();
     private Dictionary<Vector2, List<Boid>> _gridCells = new Dictionary<Vector2, List<Boid>>();
@@ -28,11 +33,13 @@ public class BoidController : Node2D
         foreach (Boid boid in _boidList)
         {
             List<Boid> neighbors = Neighbors(boid);
-            Vector2 alignment = Alignment(neighbors);
-            Vector2 separation = Separation(neighbors, boid);
-            Vector2 cohesion = Cohesion(neighbors, boid);
-            Vector2 follow = (GetGlobalMousePosition() - boid.GlobalPosition).Normalized();
-            boid.Direction = alignment + separation + cohesion + 0.8f*follow;
+            Vector2 alignment = alignCoeff * Alignment(neighbors);
+            Vector2 separation = separationCoeff * Separation(neighbors, boid);
+            Vector2 cohesion = cohesionCoeff * Cohesion(neighbors, boid);
+            Vector2 follow = followCoeff * (GetGlobalMousePosition() - boid.GlobalPosition).Normalized();
+            Vector2 newDir = alignment + separation + cohesion + follow;
+
+            boid.Direction = newDir;
         }
     }
 
@@ -43,7 +50,7 @@ public class BoidController : Node2D
             Boid boid = (Boid)_boidResource.Instance();
             boid.Speed = Speed;
             boid.Direction = new Vector2((float)GD.RandRange(-1, 1), (float)GD.RandRange(-1, 1));
-            boid.ViewAngle = ViewAngle;
+            boid.ViewAngle = Mathf.Deg2Rad(ViewAngleDegrees);
             boid.ViewDistance = ViewDistance;
             boid.TurnSpeed = TurnSpeed;
             double spread = (double)NumberOfBoids / 2.0;
