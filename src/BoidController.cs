@@ -136,7 +136,7 @@ public class BoidController : Node2D
         {
             Vector2 oppositeDir = (targetPos - boid.GlobalPosition);
             float oppositeDirLength = oppositeDir.Length();
-            separation += oppositeDir;//(1.0f / (oppositeDirLength)) * (oppositeDir / oppositeDirLength);
+            separation += oppositeDir;
         }
 
         return separation.Normalized();
