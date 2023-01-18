@@ -16,7 +16,6 @@ public class BoidController : Node2D
     [Export] public float alignCoeff { set; get; } = 1.0f;
     [Export] public float separationCoeff { set; get; } = 1.0f;
     [Export] public float cohesionCoeff { set; get; } = 1.0f;
-    [Export] public float followCoeff { set; get; } = 0.0f;
 
     private List<Boid> _boidList = new List<Boid>();
     private Dictionary<Vector2, List<Boid>> _gridCells = new Dictionary<Vector2, List<Boid>>();
@@ -36,9 +35,9 @@ public class BoidController : Node2D
             Vector2 alignment = alignCoeff * Alignment(neighbors);
             Vector2 separation = separationCoeff * Separation(neighbors, boid);
             Vector2 cohesion = cohesionCoeff * Cohesion(neighbors, boid);
-            Vector2 follow = followCoeff * (GetGlobalMousePosition() - boid.GlobalPosition).Normalized();
-            Vector2 newDir = alignment + separation + cohesion + follow;
-
+            Vector2 newDir = alignment + separation + cohesion;
+            
+            newDir /= (alignCoeff + separationCoeff + cohesionCoeff);
             boid.Direction = newDir;
         }
     }
@@ -55,7 +54,7 @@ public class BoidController : Node2D
             boid.TurnSpeed = TurnSpeed;
             double spread = (double)NumberOfBoids / 2.0;
             float posX = (float)GD.RandRange(-spread, spread);
-            float posY = (float)GD.RandRange(-spread, spread); 
+            float posY = (float)GD.RandRange(-spread, spread);
             boid.GlobalPosition = new Vector2(posX, posY);
             _boidList.Add(boid);
             AddChild(boid);
@@ -137,10 +136,10 @@ public class BoidController : Node2D
         {
             Vector2 oppositeDir = (targetPos - boid.GlobalPosition);
             float oppositeDirLength = oppositeDir.Length();
-            separation += (1.0f / (oppositeDirLength)) * (oppositeDir / oppositeDirLength);
+            separation += oppositeDir;//(1.0f / (oppositeDirLength)) * (oppositeDir / oppositeDirLength);
         }
 
-        return separation;
+        return separation.Normalized();
     }
 
     private Vector2 Cohesion(List<Boid> flock, Boid target)
