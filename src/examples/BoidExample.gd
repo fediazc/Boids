@@ -2,7 +2,6 @@ extends Node2D
 
 onready var grid = $Grid
 onready var cam = $Camera2D
-onready var goal = $Goal
 onready var STEP = $BoidController.GridStepSize
 onready var size = get_viewport().get_visible_rect().size
 
