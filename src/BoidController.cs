@@ -11,17 +11,22 @@ public class BoidController : Node2D
     [Export] public float Speed { set; get; } = 100.0f;
     [Export] public float ViewAngleDegrees { set; get; } = 90.0f;
     [Export] public double ViewDistance { set; get; } = 150;
-    [Export] public float TurnSpeed { set; get; } = 0.02f;
+    [Export] public float TurnSpeed { set; get; } = 1.0f;
 
-    [Export] public float alignCoeff { set; get; } = 1.0f;
-    [Export] public float separationCoeff { set; get; } = 1.0f;
-    [Export] public float cohesionCoeff { set; get; } = 1.0f;
+    [Export] public float AlignCoeff { set; get; } = 1.0f;
+    [Export] public float SeparationCoeff { set; get; } = 1.0f;
+    [Export] public float CohesionCoeff { set; get; } = 1.0f;
+
+    [Export] public bool KeepInBounds { set; get; } = true;
 
     private List<Boid> _boidList = new List<Boid>();
     private Dictionary<Vector2, List<Boid>> _gridCells = new Dictionary<Vector2, List<Boid>>();
+    private Vector2 _screenSize;
 
     public override void _Ready()
     {
+        _screenSize = GetViewport().GetVisibleRect().Size;
+        GD.Print(_screenSize);
         GD.Randomize();
         CreateBoids();
     }
@@ -32,13 +37,21 @@ public class BoidController : Node2D
         foreach (Boid boid in _boidList)
         {
             List<Boid> neighbors = Neighbors(boid);
-            Vector2 alignment = alignCoeff * Alignment(neighbors);
-            Vector2 separation = separationCoeff * Separation(neighbors, boid);
-            Vector2 cohesion = cohesionCoeff * Cohesion(neighbors, boid);
-            Vector2 newDir = alignment + separation + cohesion;
+            Vector2 alignment = AlignCoeff * Alignment(neighbors);
+            Vector2 separation = SeparationCoeff * Separation(neighbors, boid);
+            Vector2 cohesion = CohesionCoeff * Cohesion(neighbors, boid);
+            Vector2 newDir = separation + alignment + cohesion;
             
-            newDir /= (alignCoeff + separationCoeff + cohesionCoeff);
+            newDir /= (AlignCoeff + SeparationCoeff + CohesionCoeff);
             boid.Direction = newDir;
+
+            if (KeepInBounds)
+            {
+                Vector2 pos = boid.GlobalPosition;
+                pos.x = pos.x < 0? _screenSize.x : (pos.x > _screenSize.x? 0 : pos.x);
+                pos.y = pos.y < 0? _screenSize.y : (pos.y > _screenSize.y? 0 : pos.y);
+                boid.GlobalPosition = pos;
+            }
         }
     }
 
@@ -52,9 +65,9 @@ public class BoidController : Node2D
             boid.ViewAngle = Mathf.Deg2Rad(ViewAngleDegrees);
             boid.ViewDistance = ViewDistance;
             boid.TurnSpeed = TurnSpeed;
-            double spread = (double)NumberOfBoids / 2.0;
-            float posX = (float)GD.RandRange(-spread, spread);
-            float posY = (float)GD.RandRange(-spread, spread);
+            double spread = (double)NumberOfBoids / 3;
+            float posX = (float)GD.RandRange(-spread, spread) + _screenSize.x / 2;
+            float posY = (float)GD.RandRange(-spread, spread) + _screenSize.y / 2;
             boid.GlobalPosition = new Vector2(posX, posY);
             _boidList.Add(boid);
             AddChild(boid);
@@ -103,7 +116,7 @@ public class BoidController : Node2D
 
         foreach (Boid boid in nearbyBoids)
         {
-            if (target == boid) continue; // skip over self
+            if (target == boid) continue;
 
             Vector2 boidPos = boid.GlobalPosition;
             bool close = viewDistSquared > targetPos.DistanceSquaredTo(boidPos);

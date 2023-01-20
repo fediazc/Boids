@@ -7,14 +7,16 @@
 script = ExtResource( 2 )
 
 [node name="BoidController" parent="." instance=ExtResource( 1 )]
-NumberOfBoids = 1000
-GridStepSize = 25
-alignCoeff = 1.2
-separationCoeff = 0.6
-cohesionCoeff = 0.5
+NumberOfBoids = 400
+GridStepSize = 75
+TurnSpeed = 0.02
+AlignCoeff = 0.8
+SeparationCoeff = 0.7
+CohesionCoeff = 0.6
+KeepInBounds = false
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( -1, 5 )
+anchor_mode = 0
 current = true
 
 [node name="Grid" type="Node2D" parent="."]
